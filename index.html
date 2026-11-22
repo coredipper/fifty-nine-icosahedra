@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Fifty-Nine Icosahedra</title>
+  <meta name="description" content="Interactive 3D models of the 59 stellations of the icosahedron (Coxeter, Du Val, Flather and Petrie, 1938).">
+  <link rel="preload" href="vendor/fonts/outfit/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="background-effects">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+  <div class="index-container">
+    <header class="index-header">
+      <h1>The Fifty-Nine Icosahedra</h1>
+      <p>The 59 stellations of the icosahedron enumerated by Coxeter, Du Val, Flather and Petrie (1938), computed from the 20 face planes.</p>
+    </header>
+    <p class="webgl-warning">3D previews need WebGL, which is not available in this browser.</p>
+    <main class="polyhedra-grid" id="grid"></main>
+  </div>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.min.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+  <script type="module" src="js/index.js"></script>
+</body>
+</html>
