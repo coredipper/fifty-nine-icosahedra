@@ -1,0 +1,14 @@
+{
+  "name": "fifty-nine-icosahedra",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive 3D viewer for the 59 stellations of the icosahedron",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
