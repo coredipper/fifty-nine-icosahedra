@@ -173,29 +173,32 @@ function initViewer(startIndex) {
   // dragging, or settling OrbitControls damping, then goes idle.
   let rafId = 0;
   let interacting = false;
+  let updating = false;
   let contextLost = false;
   const prevPosition = new THREE.Vector3();
   const prevTarget = new THREE.Vector3();
+
+  const requestRender = () => {
+    if (!rafId && !contextLost && !updating) {
+      rafId = window.requestAnimationFrame(frame);
+    }
+  };
 
   const frame = () => {
     rafId = 0;
     if (contextLost) return;
     prevPosition.copy(camera.position);
     prevTarget.copy(controls.target);
+    updating = true;
     controls.update();
+    updating = false;
     renderer.render(scene, camera);
 
     const moved =
       prevPosition.distanceToSquared(camera.position) > 1e-10 ||
       prevTarget.distanceToSquared(controls.target) > 1e-10;
     if (controls.autoRotate || interacting || moved) {
-      rafId = window.requestAnimationFrame(frame);
-    }
-  };
-
-  const requestRender = () => {
-    if (!rafId && !contextLost) {
-      rafId = window.requestAnimationFrame(frame);
+      requestRender();
     }
   };
 

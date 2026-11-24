@@ -196,12 +196,12 @@ if (!renderer) {
       if (spin) {
         preview.object.rotation.set(0.12 * elapsed + preview.phase, 0.3 * elapsed + preview.phase, 0);
       }
-      preview.object.visible = true;
+      scene.add(preview.object);
       renderer.render(scene, camera);
-      preview.object.visible = false;
+      scene.remove(preview.object);
     }
 
-    if (spin) rafId = window.requestAnimationFrame(renderFrame);
+    if (spin) requestRender();
   };
 
   const requestRender = () => {
@@ -219,8 +219,6 @@ if (!renderer) {
       edgeMaterial,
     });
     object.rotation.set(preview.phase, preview.phase, 0);
-    object.visible = false;
-    scene.add(object);
     preview.object = object;
   };
 
