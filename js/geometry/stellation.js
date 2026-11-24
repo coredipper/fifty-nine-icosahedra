@@ -34,13 +34,7 @@ function faceNormals() {
 }
 
 export const NORMALS = faceNormals();
-export const PLANE_DISTANCE = INRADIUS;
-
-export const ICOSAHEDRON_VERTICES = (() => {
-  const v = [];
-  for (const a of [-1, 1]) for (const b of [-PHI, PHI]) v.push([0, a, b], [a, b, 0], [b, 0, a]);
-  return v;
-})();
+const PLANE_DISTANCE = INRADIUS;
 
 function sameMatrix(a, b) {
   return a.every((x, i) => Math.abs(x - b[i]) < 1e-9);
@@ -69,7 +63,7 @@ const PERMUTATIONS = GROUP.map((g) => NORMALS.map((n) => planeIndex(matVec(g, n)
 const ROTATION_PERMUTATIONS = PERMUTATIONS.filter((_, k) => determinant(GROUP[k]) > 0);
 
 /** +1 where the point is outside a face plane, -1 where inside. */
-export function signVector(x) {
+function signVector(x) {
   return NORMALS.map((n) => (dot(n, x) > PLANE_DISTANCE ? 1 : -1));
 }
 
@@ -106,7 +100,7 @@ const cellCache = new Map();
  * orbit under all 120 symmetries, `half` the orbit under the 60 rotations
  * (cell types that are not mirror symmetric split into two halves).
  */
-export function cellAt(x) {
+function cellAt(x) {
   const signs = signVector(x);
   const key = signs.join(',');
   if (!cellCache.has(key)) {
@@ -222,9 +216,37 @@ export const DIAGRAM = (() => {
 // Cell types and shells.
 
 /**
+ * Signed twist of a rotation half around the outward face normal N0 relative
+ * to the core icosahedron triangle: positive for the counter-clockwise
+ * (right-hand rule around +N0) enantiomorph, negative for its mirror image.
+ * Ordering chiral halves by this twist makes enantiomorph selection geometric
+ * rather than dependent on the enumeration order of NORMALS.
+ */
+function halfTwist(half) {
+  const icoVertices = DIAGRAM.find((r) => r.inside.depth === 0).polygon;
+  let total = 0;
+  for (const r of DIAGRAM) {
+    if (r.inside.half !== half) continue;
+    const c = r.centre2D;
+    let nearest = icoVertices[0];
+    let bestDot = -Infinity;
+    for (const v of icoVertices) {
+      const d = v[0] * c[0] + v[1] * c[1];
+      if (d > bestDot) {
+        bestDot = d;
+        nearest = v;
+      }
+    }
+    total += nearest[0] * c[1] - nearest[1] * c[0];
+  }
+  return total;
+}
+
+/**
  * All bounded cell types, sorted by depth. Each has { type, depth, halves }:
  * the rotation orbits it splits into (one for mirror-symmetric types, two
- * otherwise).
+ * otherwise, ordered by geometric twist so halves[0] is positive / CCW around
+ * the outward face normal and halves[1] is its mirror image).
  */
 export const CELL_TYPES = (() => {
   const types = new Map();
@@ -236,7 +258,11 @@ export const CELL_TYPES = (() => {
     }
   }
   return [...types.values()]
-    .map((t) => ({ ...t, halves: [...t.halves].sort() }))
+    .map((t) => {
+      const halves = [...t.halves];
+      if (halves.length === 2) halves.sort((a, b) => halfTwist(b) - halfTwist(a));
+      return { ...t, halves };
+    })
     .sort((a, b) => a.depth - b.depth || (a.type < b.type ? -1 : 1));
 })();
 
@@ -286,19 +312,20 @@ export function cellNames(order = { e: 0, g: 0 }) {
   return names;
 }
 
-export const CELL_NAMES = cellNames({ e: 0, g: 0 });
+const CELL_NAMES = cellNames({ e: 0, g: 0 });
 
 /**
  * Parse Coxeter's notation into the set of cells it contains. A capital
  * letter means every shell up to and including it ("D" = a, b, c, d);
  * lower-case names add single cell types. `chiralF1` selects one rotation
- * half of f1 (the italic f1 of the chiral stellations).
+ * half of f1 (the italic f1 of the chiral stellations); `mirror` switches to
+ * the opposite enantiomorph.
  */
-export function parseCells(notation, { chiralF1 = false, names = CELL_NAMES } = {}) {
+export function parseCells(notation, { chiralF1 = false, mirror = false, names = CELL_NAMES } = {}) {
   const types = new Set();
   const halves = new Set();
-  const tokens = notation.match(/[A-H]|[a-h][12]?/g) ?? [];
-  if (tokens.join('') !== notation) throw new Error(`Cannot parse cell notation "${notation}"`);
+  const tokens = typeof notation === 'string' ? (notation.match(/[A-H]|[a-h][12]?/g) ?? []) : [];
+  if (!notation || tokens.join('') !== notation) throw new Error(`Cannot parse cell notation "${notation}"`);
   const shellNames = { a: ['a'], b: ['b'], c: ['c'], d: ['d'], e: ['e1', 'e2'], f: ['f1', 'f2'], g: ['g1', 'g2'], h: ['h'] };
   for (const token of tokens) {
     if (/[A-H]/.test(token)) {
@@ -306,7 +333,7 @@ export function parseCells(notation, { chiralF1 = false, names = CELL_NAMES } = 
         for (const name of shellNames[letter]) types.add(names[name].type);
       }
     } else if (token === 'f1' && chiralF1) {
-      halves.add(names.f1.halves[0]);
+      halves.add(names.f1.halves[mirror ? 1 : 0]);
     } else {
       if (!names[token]) throw new Error(`Unknown cell "${token}"`);
       types.add(names[token].type);
@@ -317,30 +344,30 @@ export function parseCells(notation, { chiralF1 = false, names = CELL_NAMES } = 
 
 const inSet = (cell, set) => cell.bounded && (set.types.has(cell.type) || set.halves.has(cell.half));
 
-/** Diagram regions of plane 0 that belong to the surface of a cell set. */
+/**
+ * Diagram regions of plane 0 that belong to the surface of a cell set.
+ * Each region includes `outward`: true when the solid is on the inside (-N0)
+ * side so the outward normal is +N0, false for underside (') faces whose
+ * outward normal is -N0.
+ */
 export function surfaceRegions(set) {
-  return DIAGRAM.filter((r) => inSet(r.inside, set) !== inSet(r.outside, set));
+  const regions = [];
+  for (const r of DIAGRAM) {
+    const inside = inSet(r.inside, set);
+    const outside = inSet(r.outside, set);
+    if (inside !== outside) regions.push({ ...r, outward: inside });
+  }
+  return regions;
 }
 
-/**
- * Faces of the stellation as 3D convex polygons (all 20 planes), with the
- * index of the plane each lies in.
- */
-export function stellationFaces(set) {
-  const regions = surfaceRegions(set).map((r) => r.polygon.map(to3D));
-  const faces = [];
-  PLANE_ROTATIONS.forEach((g, plane) => {
-    for (const polygon of regions) faces.push({ plane, points: polygon.map((p) => matVec(g, p)) });
-  });
-  return faces;
-}
+const formatCoord = (x) => (Math.abs(x) < 1e-9 ? 0 : x).toFixed(6);
 
 /** Type of a diagram region under the symmetries of its plane (for the face sets). */
 export function regionType(region) {
   const c = to3D(region.centre2D);
   let best = null;
   for (const g of PLANE_STABILISER) {
-    const key = matVec(g, c).map((x) => x.toFixed(6)).join(',');
+    const key = matVec(g, c).map(formatCoord).join(',');
     if (best === null || key < best) best = key;
   }
   return best;

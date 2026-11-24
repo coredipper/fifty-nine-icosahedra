@@ -15,10 +15,12 @@ npm start                  # http://localhost:8000 (Node 18+, no dependencies)
 # or: python3 -m http.server 8000
 ```
 
-The gallery (`index.html`) links to the viewer (`viewer.html?shape=stellation-<n>`).
+The gallery (`index.html`) supports filtering by group or searching by number,
+name, cell notation, or catalogue reference, and links to the viewer
+(`viewer.html?shape=stellation-<n>`).
 Viewer controls: drag to rotate, scroll to zoom, `←` `→` for the previous or
-next stellation. Buttons toggle auto-rotation, edges, and one colour per
-face plane.
+next stellation. Buttons toggle auto-rotation, edges, one colour per face plane,
+and mirroring for chiral stellations.
 
 ## How the shapes are computed
 

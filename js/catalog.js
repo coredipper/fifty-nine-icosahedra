@@ -1,7 +1,7 @@
 // The 59 stellations of the icosahedron (Coxeter, Du Val, Flather and
 // Petrie, "The Fifty-Nine Icosahedra", 1938), in the order and notation of
 // Wikipedia's "The Fifty-Nine Icosahedra":
-//   index    Crennell index (1-59); 33-59 are chiral, right-handed form
+//   index    Crennell index (1-59); 33-59 are chiral (enantiomorphic pairs)
 //   cells    Coxeter's cell notation; in the chiral ones f1 is one
 //            enantiomorphic half ("italic f1")
 //   faces    regions of the stellation diagram on the surface; ' marks a
@@ -35,7 +35,7 @@ const rows = [
   [23, 'Fg1', "8 9 12", 'W31 Sixth stellation', '17 Double 13+9', 'Taf. X, Fig. 3', 'Sixth stellation'],
   [24, 'De1f1', "4 6' 9 10", null, null, null, null],
   [25, 'De1f1g1', "4 6' 9 12", null, null, null, null],
-  [26, 'Ef1g1', "7 9 12", 'W28 Third stellation', '9 Mobius (concave)', 'Taf. VIII, Fig. 26', 'Excavated dodecahedron'],
+  [26, 'Ef1g1', "7 9 12", 'W28 Third stellation', '9 Möbius (concave)', 'Taf. VIII, Fig. 26', 'Excavated dodecahedron'],
   [27, 'De2', "3 6 7", null, '5 Archimedian variety of no. 13', null, null],
   [28, 'Ef2', "5 6 8", null, '18 Double 13+10', 'Taf. IX, Fig. 20', null],
   [29, 'Fg2', "10 11", 'W33 Eighth stellation', '14 Archimedian variety 11', null, 'Eighth stellation'],

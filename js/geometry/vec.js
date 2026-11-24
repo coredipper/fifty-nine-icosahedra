@@ -13,13 +13,6 @@ export const cross = (a, b) => [
 ];
 export const length = (a) => Math.hypot(a[0], a[1], a[2]);
 export const normalize = (a) => scale(a, 1 / length(a));
-export const distance = (a, b) => length(sub(a, b));
-
-export function centroid(points) {
-  let c = [0, 0, 0];
-  for (const p of points) c = add(c, p);
-  return scale(c, 1 / points.length);
-}
 
 export const IDENTITY = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
 
@@ -39,8 +32,6 @@ export const matVec = (m, v) => [
   m[6] * v[0] + m[7] * v[1] + m[8] * v[2],
 ];
 
-export const transpose = (m) => [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]];
-
 export const determinant = (m) =>
   m[0] * (m[4] * m[8] - m[5] * m[7]) -
   m[1] * (m[3] * m[8] - m[5] * m[6]) +
@@ -55,6 +46,3 @@ export function reflection(n) {
     -2 * x * z, -2 * y * z, 1 - 2 * z * z,
   ];
 }
-
-/** Rotation matrix whose rows are the given orthonormal basis vectors. */
-export const fromRows = (a, b, c) => [...a, ...b, ...c];
